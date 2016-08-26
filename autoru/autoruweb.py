@@ -5,9 +5,6 @@ import datetime
 import webapp2
 from google.appengine.ext import ndb
 from google.appengine.api import mail
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 
 class Cars(ndb.Model):
@@ -17,7 +14,8 @@ class Cars(ndb.Model):
     probeg = ndb.TextProperty()
     cost = ndb.TextProperty()
     description = ndb.TextProperty()
-    update = ndb.DateProperty(auto_now_add=True)
+    update = ndb.DateProperty(auto_now_add=False)
+    startdate = ndb.DateProperty(auto_now_add=False)
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
@@ -36,16 +34,23 @@ class MainPage(webapp2.RequestHandler):
         body = ''
         for k in pars.gopars(fromm, to):
             if k['link'] not in [s.link for s in carsold]:
+                car = Cars(id=k['link'])
+                car.link = k['link']
+                car.name = k['name']
+                car.description = u''.join(k['description']).replace('&nbsp;', '')
+                car.year = int(k['year'])
+                car.probeg = k['probeg']
+                car.cost = str(k['cost']).replace('&nbsp;', '')
+                car.update = datetime.date.today()
+                car.startdate = datetime.date.today()
+                car.put()
                 body += ('\n' + k['name'] + '; ' + k['year'] + '; ' + k['probeg'] + '; ' + str(k['cost']).replace('&nbsp;','') + '; ' + u''.join(k['description']).replace('&nbsp;', '') + '; ' + k['link'])
-            cars = Cars(id=k['link'])
-            self.response.out.write('<div>'+k['name']+'; '+k['year']+'; <b>'+k['probeg']+'</b>; <b>'+str(k['cost']).replace('&nbsp;','')+'</b>; '+u''.join(k['description']).replace('&nbsp;','')+'; <a href="'+k['link']+'">LINK</a></div>')
-            cars.link = k['link']
-            cars.name = k['name']
-            cars.description = u''.join(k['description']).replace('&nbsp;', '')
-            cars.year = int(k['year'])
-            cars.probeg = k['probeg']
-            cars.cost = str(k['cost']).replace('&nbsp;', '')
-            cars.put()
+            else:
+                car = Cars.get_by_id(k['link'])
+                car.cost = str(k['cost']).replace('&nbsp;', '')
+                car.update = datetime.date.today()
+                car.put()
+            self.response.out.write('<div>' + k['name'] + '; ' + k['year'] + '; <b>' + k['probeg'] + '</b>; <b>' + str(k['cost']).replace('&nbsp;', '') + '</b>; ' + u''.join(k['description']).replace('&nbsp;', '') + '; <a href="' + k['link'] + '">LINK</a></div>')
         self.response.out.write('</body></html>')
         if body != '':
             mail.send_mail(sender="a260641139@gmail.com", to="a260641139@ya.ru", subject="New Cars List", body=body)
@@ -55,7 +60,7 @@ class DataBase(webapp2.RequestHandler):
         cars = ndb.gql('SELECT * FROM Cars ORDER BY update DESC, year DESC')
         self.response.out.write("""<html><body>""")
         for k in cars:
-            self.response.out.write('<div>'+k.name+'; '+str(k.year)+'; <b>'+k.probeg+'</b>; <b>'+str(k.cost).replace('&nbsp;','')+'</b>; '+u''.join(k.description).replace('&nbsp;','')+'; <a href="'+k.link+'">LINK</a> '+str(k.update)+'</div>')
+            self.response.out.write('<div>'+k.name+'; '+str(k.year)+'; <b>'+k.probeg+'</b>; <b>'+str(k.cost).replace('&nbsp;','')+'</b>; '+u''.join(k.description).replace('&nbsp;','')+'; <a href="'+k.link+'">LINK</a> '+str(k.update)+'<b>TOTAL_DAYS: '+str(k.update-k.startdate)+'</b></div>')
         self.response.out.write('</body></html>')
 
 
