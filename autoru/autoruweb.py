@@ -60,7 +60,10 @@ class DataBase(webapp2.RequestHandler):
         cars = ndb.gql('SELECT * FROM Cars ORDER BY update DESC, year DESC')
         self.response.out.write("""<html><body>""")
         for k in cars:
-            self.response.out.write('<div>'+k.name+'; '+str(k.year)+'; <b>'+k.probeg+'</b>; <b>'+str(k.cost).replace('&nbsp;','')+'</b>; '+u''.join(k.description).replace('&nbsp;','')+'; <a href="'+k.link+'">LINK</a> '+str(k.update)+'<b>TOTAL_DAYS: '+str(k.update-k.startdate)+'</b></div>')
+            if k.update != datetime.date.today():
+                self.response.out.write('<div style="color: red">' + k.name + '; ' + str(k.year) + '; <b>' + k.probeg + '</b>; <b>' + str(k.cost).replace('&nbsp;', '') + '</b>; ' + u''.join(k.description).replace('&nbsp;', '') + '; <a href="' + k.link + '">LINK</a> ' + str(k.update) + '<b>TOTAL_DAYS: ' + str(k.update - k.startdate) + '</b></div>')
+            else:
+                self.response.out.write('<div style="color: green">'+k.name+'; '+str(k.year)+'; <b>'+k.probeg+'</b>; <b>'+str(k.cost).replace('&nbsp;','')+'</b>; '+u''.join(k.description).replace('&nbsp;','')+'; <a href="'+k.link+'">LINK</a> '+str(k.update)+'<b>TOTAL_DAYS: '+str(k.update-k.startdate)+'</b></div>')
         self.response.out.write('</body></html>')
 
 

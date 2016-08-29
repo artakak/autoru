@@ -1,4 +1,4 @@
 cron:
 - description: cars list
   url: /
-  schedule: every 8 hours
+  schedule: every 30 mins
