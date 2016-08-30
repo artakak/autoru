@@ -30,8 +30,10 @@ class MainPage(webapp2.RequestHandler):
             </form>
             <form action="/db" method="get">
             <div><input type="submit" value="DB"></div>
-          </form>""")
+            </form>
+            <table border='2' width ='100%'><tr><td>№</td><td>Модель</td><td>Год</td><td>Пробег</td><td>Цена</td><td>Описание</td><td>Ссылка на объявление</td></tr>""")
         body = ''
+        n = 1
         for k in pars.gopars(fromm, to):
             if k['link'] not in [s.link for s in carsold]:
                 car = Cars(id=k['link'])
@@ -50,20 +52,24 @@ class MainPage(webapp2.RequestHandler):
                 car.cost = str(k['cost']).replace('&nbsp;', '')
                 car.update = datetime.date.today()
                 car.put()
-            self.response.out.write('<div>' + k['name'] + '; ' + k['year'] + '; <b>' + k['probeg'] + '</b>; <b>' + str(k['cost']).replace('&nbsp;', '') + '</b>; ' + u''.join(k['description']).replace('&nbsp;', '') + '; <a href="' + k['link'] + '">LINK</a></div>')
-        self.response.out.write('</body></html>')
+            self.response.out.write('<tr><td>'+str(n)+'</td><td>' + k['name'] + '</td><td>' + k['year'] + '</td><td>' + k['probeg'] + '</td><td>' + str(k['cost']).replace('&nbsp;', '') + '</td><td>' + u''.join(k['description']).replace('&nbsp;', '') + '</td><td><a href="' + k['link'] + '">LINK</a></td></tr>')
+            n += 1
+        self.response.out.write('</table></body></html>')
         if body != '':
             mail.send_mail(sender="a260641139@gmail.com", to="a260641139@ya.ru", subject="New Cars List", body=body)
 
 class DataBase(webapp2.RequestHandler):
     def get(self):
         cars = ndb.gql('SELECT * FROM Cars ORDER BY update DESC, year DESC')
-        self.response.out.write("""<html><body>""")
+        self.response.out.write("""<html><body>
+                                   <table border='2' width ='100%'><tr><td>№</td><td>Модель</td><td>Год</td><td>Пробег</td><td>Цена</td><td>Описание</td><td>Ссылка на объявление</td><td>Последнее обновление</td><td>Количество дней</td></tr>""")
+        n = 1
         for k in cars:
             if k.update != datetime.date.today():
-                self.response.out.write('<div style="color: red">' + k.name + '; ' + str(k.year) + '; <b>' + k.probeg + '</b>; <b>' + str(k.cost).replace('&nbsp;', '') + '</b>; ' + u''.join(k.description).replace('&nbsp;', '') + '; <a href="' + k.link + '">LINK</a> ' + str(k.update) + '<b>TOTAL_DAYS: ' + str(k.update - k.startdate) + '</b></div>')
+                self.response.out.write('<tr style="color: red"><td>'+str(n)+'</td><td>' + k.name + '</td><td>' + str(k.year) + '</td><td>' + k.probeg + '</td><td>' + str(k.cost).replace('&nbsp;', '') + '</td><td>' + u''.join(k.description).replace('&nbsp;', '') + '</td><td><a href="' + k.link + '">LINK</a></td><td>' + str(k.update) + '</td><td>' + str(k.update - k.startdate) + '</td></tr>')
             else:
-                self.response.out.write('<div style="color: green">'+k.name+'; '+str(k.year)+'; <b>'+k.probeg+'</b>; <b>'+str(k.cost).replace('&nbsp;','')+'</b>; '+u''.join(k.description).replace('&nbsp;','')+'; <a href="'+k.link+'">LINK</a> '+str(k.update)+'<b>TOTAL_DAYS: '+str(k.update-k.startdate)+'</b></div>')
+                self.response.out.write('<tr style="color: green"><td>'+str(n)+'</td><td>' + k.name + '</td><td>' + str(k.year) + '</td><td>' + k.probeg + '</td><td>' + str(k.cost).replace('&nbsp;', '') + '</td><td>' + u''.join(k.description).replace('&nbsp;', '') + '</td><td><a href="' + k.link + '">LINK</a></td><td>' + str(k.update) + '</td><td>' + str(k.update - k.startdate) + '</td></tr>')
+            n += 1
         self.response.out.write('</body></html>')
 
 
