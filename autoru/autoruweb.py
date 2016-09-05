@@ -77,11 +77,8 @@ class DataBase(webapp2.RequestHandler):
 class Parser():
     def __init__(self):
         self.cars = []
+        self.cars.append(dict())
         self.a = 0
-        self.b = 0
-        self.c = 0
-        self.d = 0
-        self.e = 0
         self.aver = 0
 
     def gopars(self, fromm, to):
@@ -93,23 +90,23 @@ class Parser():
         self.soup = BeautifulSoup.BeautifulSoup(self.page.read(), fromEncoding="utf-8")
         logging.info(self.soup)
         for t in self.soup.findAll("tr", {"class": "listing__row"}):
-            for k in t.findAll("a",{"class": "link link_theme_auto listing-item__link link__control i-bem"}):
+            try:
+                result = t.find("a", {"class": "link link_theme_auto listing-item__link link__control i-bem"})
+                self.cars[self.a]['name'] = result.next.next
+                self.cars[self.a]['link'] = result['href']
+                result = t.find("div", {"class": "listing-item__description"})
+                self.cars[self.a]['description'] = u''.join(result.string)
+                result = t.find("div", {"class": "listing-item__year"})
+                self.cars[self.a]['year'] = result.string
+                result = t.find("div", {"class": "listing-item__km"})
+                self.cars[self.a]['probeg'] = result.string
+                result = t.find("div", {"class": "listing-item__price"})
+                self.cars[self.a]['cost'] = result.next
                 self.cars.append(dict())
-                self.cars[self.a]['name'] = k.next.next
-                self.cars[self.a]['link'] = k['href']
-                self.a+=1
-            for k in t.findAll("div", {"class": "listing-item__description"}):
-                self.cars[self.b]['description'] = u''.join(k.string)
-                self.b +=1
-            for k in t.findAll("div", {"class": "listing-item__year"}):
-                self.cars[self.c]['year'] = k.string
-                self.c += 1
-            for k in t.findAll("div", {"class": "listing-item__km"}):
-                self.cars[self.d]['probeg'] = k.string
-                self.d += 1
-            for k in t.findAll("div", {"class": "listing-item__price"}):
-                self.cars[self.e]['cost'] = k.next
-                self.e += 1
+                self.a += 1
+            except:
+                pass
+        self.cars.__delitem__(len(self.cars) - 1)
         return self.cars
 
 app = webapp2.WSGIApplication([
