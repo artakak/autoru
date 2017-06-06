@@ -1,4 +1,0 @@
-cron:
-- description: cars list
-  url: /
-  schedule: every 2 hours
